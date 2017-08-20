@@ -52,15 +52,28 @@ if (typeof form() === 'undefined') {
   return;
 }
 
-update(field('input[type=password]'), login.p);
-update(field('input[type=email], input[type=text], input:first-of-type'), login.u);
+
+update(field('input[type=password]'), login.password);
+update(field('input[type=email], input[type=text], input:first-of-type'), login.username);
+
+for (var property in login) {
+  if (login.hasOwnProperty(property)) {
+    let key = property;
+    let value = login[property];
+
+    if (key.startsWith("FIELD.")) {
+      dom_id=key.substr(6);
+      update(field('#' + dom_id), value);
+    }
+  }
+}
 
 var password_inputs = queryAllVisible(form(), 'input[type=password]');
 if (password_inputs.length > 1) {
   password_inputs[1].select();
 } else {
   window.requestAnimationFrame(function() {
-field('[type=submit]').click();
+    //field('[type=submit]').click();
   });
  }
 })(document);

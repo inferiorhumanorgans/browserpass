@@ -19,6 +19,7 @@ import (
 type Login struct {
 	Username string `json:"u"`
 	Password string `json:"p"`
+	Other map[string]string `json:"other"`
 }
 
 var endianness = binary.LittleEndian
@@ -66,10 +67,10 @@ func Run(stdin io.Reader, stdout io.Writer, s pass.Store) error {
 			if err != nil {
 				return err
 			}
-			if login.Username == "" {
-				login.Username = guessUsername(data.Entry)
+			if login.Other["username"] == "" {
+				login.Other["username"] = guessUsername(data.Entry)
 			}
-			resp = login
+			resp = login.Other
 		default:
 			return errors.New("Invalid action")
 		}
@@ -138,22 +139,28 @@ func readLoginGPG(r io.Reader) (*Login, error) {
 func parseLogin(r io.Reader) (*Login, error) {
 	login := new(Login)
 
+	login.Other = make(map[string]string)
+
 	scanner := bufio.NewScanner(r)
 
 	// The first line is the password
 	scanner.Scan()
 	login.Password = scanner.Text()
 
-	// Keep reading file for string in "login:", "username:" or "user:" format (case insensitive).
-	re := regexp.MustCompile("(?i)^(login|username|user):")
+
+	re := regexp.MustCompile(`^(?P<key>[[:alnum:]\.]+?)\:\s*(?P<value>.+)$`)
 	for scanner.Scan() {
 		line := scanner.Text()
-		replaced := re.ReplaceAllString(line, "")
-		if len(replaced) != len(line) {
-			login.Username = strings.TrimSpace(replaced)
-		}
-	}
 
+		match  := re.FindStringSubmatch(line)
+
+		if (match != nil) {
+			key, value := match[1], match[2]
+			login.Other[key] = value
+		}
+
+	}
+	login.Other["password"] = login.Password
 	return login, nil
 }
 
