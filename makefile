@@ -1,12 +1,19 @@
 SHELL := /usr/bin/env bash
-CHROME ?= `which google-chrome 2>/dev/null || which google-chrome-stable 2>/dev/null || which chrome 2>/dev/null`
+CHROME ?= $(shell which google-chrome 2>/dev/null || which google-chrome-stable 2>/dev/null || which chrome 2>/dev/null)
+JS_SOURCE=chrome/script.browserify.js chrome/inject.browserify.js
 JS_OUTPUT=chrome/script.js chrome/inject.js
 
 .PHONY: empty
 empty:
 
+.PHONY: need-chrome
+need-chrome:
+ifeq ($(strip $(CHROME)), )
+	$(error Chrome executable could not be found.)
+endif
+
 .PHONY: chrome
-chrome: js
+chrome: need-chrome js
 	"$(CHROME)" --pack-extension=./chrome --pack-extension-key=./chrome-browserpass.pem
 	mv chrome.crx chrome-browserpass.crx
 
