@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/dannyvankooten/browserpass"
+	"../.."
 	"github.com/dannyvankooten/browserpass/pass"
 )
 
